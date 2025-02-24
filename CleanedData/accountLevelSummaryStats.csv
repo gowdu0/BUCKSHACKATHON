@@ -1,0 +1,19 @@
+Column,count,mean,std,min,25%,50%,75%,max,ColumnType,Category,Frequency,MinCategory,MaxCategory,MedianCategory
+SingleGameTickets,42016.0,1.9671077684691547,2.139158173155515,0.0,0.0,2.0,3.0,54.0,Numeric,,,,,
+PartialPlanTickets,42016.0,0.8749285986290937,5.294887948384984,0.0,0.0,0.0,0.0,120.0,Numeric,,,,,
+GroupTickets,42016.0,1.5035700685453162,15.260822914955966,0.0,0.0,0.0,0.0,2494.0,Numeric,,,,,
+AvgSpend,42016.0,76.33004403084539,82.42225474895231,0.0,29.0,60.0,96.0,3297.0,Numeric,,,,,
+GamesAttended,42016.0,0.9727960776846916,1.170544778446368,0.0,1.0,1.0,1.0,38.0,Numeric,,,,,
+DistanceToArena,38907.0,148.74457038579175,334.40555981274196,0.0,9.0,33.0,89.0,4240.0,Numeric,,,,,
+BasketballPropensity,35178.0,683.5054579566774,236.327277094166,125.0,474.0,704.0,920.0,993.0,Numeric,,,,,
+FanSegment,,,,,,,,,Categorical,Limited Data,19545,A,Limited Data,D
+FanSegment,,,,,,,,,Categorical,A,8313,A,Limited Data,D
+FanSegment,,,,,,,,,Categorical,B,5681,A,Limited Data,D
+FanSegment,,,,,,,,,Categorical,D,3059,A,Limited Data,D
+FanSegment,,,,,,,,,Categorical,C,2325,A,Limited Data,D
+FanSegment,,,,,,,,,Categorical,F,1579,A,Limited Data,D
+FanSegment,,,,,,,,,Categorical,E,1121,A,Limited Data,D
+FanSegment,,,,,,,,,Categorical,G,393,A,Limited Data,D
+SocialMediaEngagement,,,,,,,,,Categorical,Medium,21023,High,Medium,Low
+SocialMediaEngagement,,,,,,,,,Categorical,High,10513,High,Medium,Low
+SocialMediaEngagement,,,,,,,,,Categorical,Low,10480,High,Medium,Low
