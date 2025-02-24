@@ -46,36 +46,94 @@ def clean_account_level_data(input_file, output_file):
     # -----------------------------------------------------------------
     # NEW STEP: Read seat-level data, compute distinct Games + total tickets
     # -----------------------------------------------------------------
+
+    promo_games_list = [
+        "2023-10-29 Atlanta Hawks",
+        "2023-11-08 Detroit Pistons",
+        "2023-11-26 Portland Trail Blazers",
+        "2023-12-05 New York Knicks",
+        "2023-12-21 Orlando Magic",
+        "2024-01-14 Sacramento Kings",
+        "2024-01-24 Cleveland Cavaliers",
+        "2024-02-09 Charlotte Hornets",
+        "2024-02-12 Denver Nuggets",
+        "2024-02-27 Charlotte Hornets",
+        "2024-04-09 Boston Celtics",
+        "2024-11-07 Utah Jazz",
+        "2024-12-04 Atlanta Hawks",
+        "2024-12-26 Brooklyn Nets",
+        "2025-01-02 Brooklyn Nets",
+        "2025-01-15 Orlando Magic",
+        "2025-03-08 Orlando Magic",
+        "2025-03-30 Atlanta Hawks",
+        "2025-04-13 Detroit Pistons"
+    ]
+
     try:
-        seat_df = pd.read_csv("Prompt1SeatLevel.csv")  # or your seat-level filename
+        seat_df = pd.read_csv("Prompt1SeatLevelUpdated.csv")  # or your seat-level filename
 
         # 1) Drop duplicates so each (AccountNumber, Game) is unique
-        seat_unique = seat_df[["AccountNumber", "Game"]].drop_duplicates()
+        seat_unique = seat_df[["AccountNumber", "Game", "DayOfWeek"]].drop_duplicates()
 
         # 2) SumGamesAttended = distinct games per account
         sum_games_series = (
             seat_unique.groupby("AccountNumber").size().rename("SumGamesAttended")
         )
 
-        # 3) TotNumTicketsPurchased = total rows (tickets) per account
-        tot_tickets_series = seat_df.groupby("AccountNumber").size().rename("TotNumTicketsPurchased")
+        # 3) Count weekend vs. weekday games (still using seat_unique)
+        weekend_count_series = (
+            seat_unique[seat_unique["DayOfWeek"].isin(["Saturday", "Sunday"])]
+            .groupby("AccountNumber")
+            .size()
+            .rename("WeekendGameCount")
+        )
+        weekday_count_series = (
+            seat_unique[~seat_unique["DayOfWeek"].isin(["Saturday", "Sunday"])]
+            .groupby("AccountNumber")
+            .size()
+            .rename("WeekdayGameCount")
+        )
 
-        # 4) Combine into one DataFrame for merging
-        seat_stats = pd.concat([sum_games_series, tot_tickets_series], axis=1)
+        # 4) TotNumTicketsPurchased = total rows (tickets) per account
+        #    (We do NOT drop duplicates for this one, so every ticket line is counted.)
+        tot_tickets_series = (
+            seat_df.groupby("AccountNumber").size().rename("TotNumTicketsPurchased")
+        )
+
+
+        promo_seat = seat_unique[seat_unique["Game"].isin(promo_games_list)]
+        promo_count_series = promo_seat.groupby("AccountNumber").size().rename("PromoGamesCount")
+        nonpromo_seat = seat_unique[~seat_unique["Game"].isin(promo_games_list)]
+        nonpromo_count_series = nonpromo_seat.groupby("AccountNumber").size().rename("NonPromoGamesCount")
+
+        # 5) Combine into one DataFrame for merging
+        seat_stats = pd.concat([
+            sum_games_series,
+            weekend_count_series,
+            weekday_count_series,
+            tot_tickets_series,
+            promo_count_series,
+            nonpromo_count_series
+        ], axis=1)
+        
 
         # 5) Merge these columns into df
         df = df.merge(seat_stats, how="left", on="AccountNumber")
 
-        # 6) Fill NaN with 0 where seat data is missing
-        df["SumGamesAttended"] = df["SumGamesAttended"].fillna(0).astype(int)
-        df["TotNumTicketsPurchased"] = df["TotNumTicketsPurchased"].fillna(0).astype(int)
+        # 7) Fill NaN with 0 where seat data is missing
+        for col in ["SumGamesAttended", "WeekendGameCount", "WeekdayGameCount", "TotNumTicketsPurchased", "PromoGamesCount", "NonPromoGamesCount"]:
+            df[col] = df[col].fillna(0).astype(int)
 
         print("\n[INFO] Appended SumGamesAttended (distinct games) "
               "and TotNumTicketsPurchased from seat-level data.\n")
     except FileNotFoundError:
-        print("\n[WARNING] 'Prompt1SeatLevel.csv' not found. Cannot calculate SumGamesAttended or TotNumTicketsPurchased.\n")
+        print("\n[WARNING] 'Prompt1SeatLevelUpdated.csv' not found. Cannot calculate SumGamesAttended or TotNumTicketsPurchased.\n")
         df["SumGamesAttended"] = 0
         df["TotNumTicketsPurchased"] = 0
+        df["WeekendGameCount"] = 0
+        df["WeekdayGameCount"] = 0
+        df["PromoGamesCount"] = 0
+        df["NonPromoGamesCount"] = 0
 
     # ------------------------------------------------------------
     # 5. Define the columns we actually want to compute stats on.
@@ -225,5 +283,5 @@ def clean_account_level_data(input_file, output_file):
 # Optional main method to run directly:
 if __name__ == "__main__":
     input_csv = "Prompt1AccountLevel.csv"   # Change to your actual input CSV file
-    output_csv = "AccountLevelCleaned.csv"  # Desired output CSV file
+    output_csv = "Updated-withweeks-AccountLevel.csv"  # Desired output CSV file
     clean_account_level_data(input_csv, output_csv)
